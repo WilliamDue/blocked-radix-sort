@@ -1,10 +1,11 @@
 local
-def exscan f ne xs =
-  map2 (\i x -> if i == 0 then ne else x)
-       (indices xs)
-       (rotate (-1) (scan f ne xs))
+#[inline]
+def exscan [n] 'a (neg: a -> a) (op: a -> a -> a) (ne: a) (as: [n]a) : *[n]a =
+  let inc_scan = scan op ne as
+  in map2 (\a b -> a `op` neg b) inc_scan as
 
 local
+#[inline]
 def get_bin 't
             (k: i32)
             (get_bit: i32 -> t -> i32)
@@ -17,24 +18,18 @@ def get_bin 't
 
 local
 def radix_sort_step_i16 [m] 't
-                        (size: i64)
                         (get_bit: i32 -> t -> i32)
                         (digit_n: i32)
-                        (block_offset: i64)
                         (xs: [m]t) : ([m]t, [16]i64, [16]i16) =
-  let offset = block_offset * m
+  let xs = manifest xs
   let sorted =
-    loop ys = copy xs
+    loop ys = xs
     for i in 0i32..<4i32 do
       let flags =
-        map2 (\j x ->
-                let b =
-                  if offset + j < size
-                  then get_bit (i + digit_n) x
-                  else 1
-                in (i16.i32 (1 ^ b), i16.i32 b))
-             (iota m)
-             ys
+        map (\x ->
+               let b = get_bit (i + digit_n) x
+               in (i16.i32 (1 ^ b), i16.i32 b))
+            ys
       let flags_scan =
         scan (\(a0, a1) (b0, b1) -> (a0 + b0, a1 + b1)) (0, 0) flags
       let (o, _) = flags_scan[m - 1]
@@ -44,54 +39,48 @@ def radix_sort_step_i16 [m] 't
              flags
              flags_scan
       in scatter ys (map i64.i16 is) (copy ys)
-  let is =
-    map2 (\j x ->
-            if offset + j < size
-            then get_bin 4 get_bit digit_n x
-            else (1 << 4) - 1)
-         (iota m)
-         xs
+  let is = map (get_bin 4 get_bit digit_n) sorted
   let bins = hist (+) 0 16 is (replicate m 1)
-  let offsets = exscan (+) 0 bins
+  let offsets = exscan i16.neg (+) 0 bins
   in ( sorted
      , map i64.i16 bins
      , offsets
      )
 
 local
-def blocked_radix_sort_step [n] [m] 't
-                            (size: i64)
+def blocked_radix_sort_step [n] [m] [r] 't
                             (get_bit: i32 -> t -> i32)
                             (digit_n: i32)
-                            (blocks: [n * m]t) =
+                            (xs: *[n * m + r]t) =
+  let (blocks, rest) = split xs
+  let (sorted_rest, hist_rest, offsets_rest) =
+    radix_sort_step_i16 get_bit digit_n rest
   let (sorted_blocks, hist_blocks, offsets_blocks) =
     #[incremental_flattening(only_intra)]
     unflatten blocks
-    |> map2 (radix_sort_step_i16 size get_bit digit_n) (iota n)
+    |> map (radix_sort_step_i16 get_bit digit_n)
     |> unzip3
-  let sorted = sized (n * m) (flatten sorted_blocks)
-  let old_offsets = offsets_blocks
+  let histograms = hist_blocks ++ [hist_rest]
+  let sorted = sized (n * m + r) (flatten sorted_blocks ++ sorted_rest)
+  let old_offsets = offsets_blocks ++ [offsets_rest]
   let new_offsets =
-    hist_blocks
+    histograms
     |> transpose
     |> flatten
-    |> exscan (+) 0
+    |> exscan i64.neg (+) 0
     |> unflatten
     |> transpose
   let is =
-    tabulate (n * m) (\i ->
-                        let elem = sorted[i]
-                        let bin =
-                          if i < size
-                          then get_bin 4 get_bit digit_n elem
-                          else (1 << 4) - 1
-                        let block_idx = i / m
-                        let new_offset = new_offsets[block_idx][bin]
-                        let old_block_offset = i64.i16 old_offsets[block_idx][bin]
-                        let old_offset = m * block_idx + old_block_offset
-                        let idx = (i - old_offset) + new_offset
-                        in idx)
-  in scatter (copy blocks) is sorted
+    tabulate (n * m + r) (\i ->
+                            let elem = sorted[i]
+                            let bin = get_bin 4 get_bit digit_n elem
+                            let block_idx = i / m
+                            let new_offset = new_offsets[block_idx][bin]
+                            let old_block_offset = i64.i16 old_offsets[block_idx][bin]
+                            let old_offset = m * block_idx + old_block_offset
+                            let idx = (i - old_offset) + new_offset
+                            in idx)
+  in scatter xs is sorted
 
 -- | This implementation of radix sort is based on an algorithm which
 -- splits the input up into blocks, sorts them and collect them [1].
@@ -112,8 +101,16 @@ def blocked_radix_sort [n] 't
                        (xs: [n]t) : [n]t =
   let iters = if n == 0 then 0 else (num_bits + 4 - 1) / 4
   let block = i64.i16 block
-  let n_blocks = if n == 0 then 0 else 1 + (n - 1) / block
-  let empty = replicate (n_blocks * block) xs[0]
-  in take n (loop ys = scatter empty (iota n) xs
-             for i < iters do
-               blocked_radix_sort_step n get_bit (i * 4) ys)
+  let n_blocks = n / block
+  let rest = n % block
+  let xs = sized (n_blocks * block + rest) xs
+  in sized n
+     <| loop xs = copy xs
+        for i < iters do
+          blocked_radix_sort_step get_bit (i * 4) xs
+
+-- ==
+-- entry: bench
+-- random input { [10000000]u32 }
+entry bench =
+  blocked_radix_sort 2000 u32.num_bits u32.get_bit

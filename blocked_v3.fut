@@ -140,9 +140,9 @@ module tuple4 = {
 module mk_blocked_radix_sort (T: tuple) = {
   def block_size : i64 = 256
 
-  def num_bits : i32 = 4
+  def bit_chunk : i32 = 4
 
-  def num_bins = 2 ** i64.i32 num_bits
+  def num_bins = 2 ** i64.i32 bit_chunk
 
   #[inline]
   def get_bin 'a
@@ -151,8 +151,19 @@ module mk_blocked_radix_sort (T: tuple) = {
               (a: a) : i64 =
     i64.i32
     <| loop acc = 0
-       for i < num_bits do
+       for i < bit_chunk do
          acc + (get_bit (digit_n + i) a << i)
+
+  #[inline]
+  def expresum [n] (xs: [n]i64) : [n]i64 =
+    map2 (-) (scan (+) 0 xs) xs
+
+  #[inline]
+  def sequential_offsets [k] (bins: [k]i16) : [k]i16 =
+    (loop (offsets, acc) = (replicate k 0i16, 0i16)
+     for i < k do
+       let offsets[i] = acc
+       in (offsets, acc + bins[i])).0
 
   #[inline]
   def tuple_scan [n] 'a (op: a -> a -> a) (ne: a) (as: [n](T.t a)) : [n](T.t a) =
@@ -176,32 +187,72 @@ module mk_blocked_radix_sort (T: tuple) = {
            (as: [T.num_elems * block_size]a) =
     let as = manifest as
     let bins = T.count num_bins (get_bin get_bit digit_n) as
+    let offsets = sequential_offsets bins
     let sorted =
       loop as
-      for i < num_bits do
+      for i < bit_chunk do
         let ts = copy (T.from_array as)
         let flags = map (T.map (to_bits get_bit (i + digit_n))) ts
-        let offsets = tuple_scan add2 (0, 0) flags
-        let (o, _) = T.last offsets[block_size - 1]
+        let offsets_scan = tuple_scan add2 (0, 0) flags
+        let (o, _) = T.last offsets_scan[block_size - 1]
         let is =
           map2 (T.map2 (\(f, _) (o0, o1) ->
                           i64.i16 (if f == 1 then o0 - 1 else o + o1 - 1)))
                flags
-               offsets
+               offsets_scan
         let as = T.scatter as is ts
         in as
-    in (sorted, bins)
+    in (sorted, bins, offsets)
 
-  def test 'a [n] [m]
-           (digit_n: i32)
-           (get_bit: i32 -> a -> i32)
-           (blocks: [n * m]a) =
-    #[incremental_flattening(only_intra)]
-    unflatten blocks
-    |> map (step digit_n get_bit <-< sized (T.num_elems * block_size))
+  #[inline]
+  def blocked_radix_sort_step [n] [m] 't
+                              (size: i64)
+                              (get_bit: i32 -> t -> i32)
+                              (digit_n: i32)
+                              (blocks: [n * m]t) =
+    let (sorted_blocks, hist_blocks, offsets_blocks) =
+      #[incremental_flattening(only_intra)]
+      unflatten blocks
+      |> map2 (step digit_n get_bit <-< sized (T.num_elems * block_size)) (iota n)
+      |> unzip3
+    let sorted = sized (n * m) (flatten sorted_blocks)
+    let old_offsets = offsets_blocks
+    let new_offsets =
+      hist_blocks
+      |> map i64.i16
+      |> transpose
+      |> flatten
+      |> expresum
+      |> unflatten
+      |> transpose
+    let is =
+      tabulate (n * m) (\i ->
+                          let elem = sorted[i]
+                          let bin =
+                            if i < size
+                            then get_bin get_bit digit_n elem
+                            else (1 << i64.i32 bit_chunk) - 1
+                          let block_idx = i / m
+                          let new_offset = new_offsets[block_idx][bin]
+                          let old_block_offset = i64.i16 old_offsets[block_idx][bin]
+                          let old_offset = m * block_idx + old_block_offset
+                          let idx = (i - old_offset) + new_offset
+                          in idx)
+    in scatter (copy blocks) is sorted
+
+  def blocked_radix_sort [n] 't
+                         (num_bits: i32)
+                         (get_bit: i32 -> t -> i32)
+                         (xs: [n]t) : [n]t =
+    let iters = if n == 0 then 0 else (num_bits + bit_chunk - 1) / bit_chunk
+    let n_blocks = if n == 0 then 0 else 1 + (n - 1) / block_size
+    let empty = replicate (n_blocks * block_size) xs[0]
+    in take n (loop ys = scatter empty (map (\i -> T.const i) (iota n)) xs
+               for i < iters do
+                 blocked_radix_sort_step n get_bit (i * bit_chunk) ys)
 }
 
 module blocked_radix_sort = mk_blocked_radix_sort tuple2
 
-entry main [n] [m] (xs: [n][m]i64) =
-  blocked_radix_sort.test 0 i64.get_bit (flatten xs)
+entry main [n] (xs: [n]i64) : [n]i64 =
+  blocked_radix_sort.blocked_radix_sort i64.num_bits i64.get_bit xs
