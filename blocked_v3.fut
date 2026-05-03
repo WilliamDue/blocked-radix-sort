@@ -44,7 +44,7 @@ module blocked_radix_sort = {
     tabulate block_size (\i ->
                            let c =
                              loop acc = 0
-                             for v in as[i::num_elems] do
+                             for v in as[i * num_elems : (i + 1) * num_elems] do
                                acc + f v
                            in (c, i16.(i64 num_elems - c)))
 
@@ -64,8 +64,8 @@ module blocked_radix_sort = {
       |> scan add2 (0, 0)
     let (o, _) = #[unsafe] offsets[block_size - 1]
     let accs = replicate block_size (0i16, 0i16)
-    let (as, _) =
-      loop (as, accs)
+    let (dst, _) =
+      loop (dst, accs) = (copy as, accs)
       for k < num_elems do
         let js = #[trace] sized block_size (k..(num_elems + k)..<num_elems * block_size)
         let is =
@@ -79,14 +79,14 @@ module blocked_radix_sort = {
                js
                accs
         let vs = gather as js
-        let as = scatter (#[scratch] copy as) is vs
+        let dst = scatter (#[scratch] copy dst) is vs
         let accs =
           map2 (\(a0, a1) v ->
                   let i = get v in (a0 + i, a1 + (1 ^ i)))
                accs
                vs
-        in (as, accs)
-    in as
+        in (dst, accs)
+    in dst
 
   #[inline]
   def step 'a
