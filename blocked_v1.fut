@@ -110,3 +110,9 @@ def blocked_radix_sort [n] 't
      <| loop xs = copy xs
         for i < iters do
           blocked_radix_sort_step get_bit (i * 2) xs
+
+-- ==
+-- entry: bench
+-- notest random input { [71680000]u32 }
+entry bench =
+  blocked_radix_sort 256 u32.num_bits u32.get_bit

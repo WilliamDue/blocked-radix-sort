@@ -1,4 +1,4 @@
-def num_elems : i64 = 20
+def num_elems : i64 = 28
 def block_size : i64 = 256
 
 module blocked_radix_sort = {
@@ -174,7 +174,7 @@ entry main [n] (xss: [n][num_elems][block_size]i64) =
 
 -- ==
 -- entry: test_sort_reversed
--- input { }
+-- nobench input { }
 -- output { true }
 
 entry test_sort_reversed : bool =
@@ -185,7 +185,7 @@ entry test_sort_reversed : bool =
 
 -- ==
 -- entry: is_sorted
--- random input { [5][5120]u32 }
+-- nobench random input { [5][5120]u32 }
 -- output { true }
 
 entry is_sorted [n] (arrs: [n][num_elems * block_size]u32) : bool =
@@ -197,7 +197,7 @@ entry is_sorted [n] (arrs: [n][num_elems * block_size]u32) : bool =
 
 -- ==
 -- entry: is_stable
--- random input { [5][5120]u8 }
+-- nobench random input { [5][5120]u8 }
 -- output { true }
 
 entry is_stable [n] (arrs: [n][num_elems * block_size]u8) : bool =
@@ -207,12 +207,12 @@ entry is_stable [n] (arrs: [n][num_elems * block_size]u8) : bool =
            |> blocked_radix_sort.sort u8.num_bits (\bit (k, _) -> u8.get_bit bit k)
            |> unzip
          in tabulate (num_elems * block_size) (\i ->
-              i == 0 || keys[i - 1] != keys[i] || idx[i - 1] < idx[i])
+                                                 i == 0 || keys[i - 1] != keys[i] || idx[i - 1] < idx[i])
             |> and)
       arrs
 
 -- ==
 -- entry: bench
--- random input { [10240000]u32 }
+-- notest random input { [71680000]u32 }
 entry bench =
   blocked_radix_sort.sort u32.num_bits u32.get_bit
