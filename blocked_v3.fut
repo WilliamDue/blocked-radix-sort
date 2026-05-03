@@ -173,6 +173,44 @@ entry main [n] (xss: [n][num_elems][block_size]i64) =
   blocked_radix_sort.sort_step 0 i64.get_bit (flatten (map flatten xss))
 
 -- ==
+-- entry: test_sort_reversed
+-- output { true }
+
+entry test_sort_reversed : bool =
+  let n = num_elems * block_size
+  let xs = map (u32.i64 <-< (n - 1 -)) (iota n)
+  let result = blocked_radix_sort.sort u32.num_bits u32.get_bit xs
+  in map2 (==) result (map u32.i64 (iota n)) |> and
+
+-- ==
+-- entry: is_sorted
+-- random input { [5][5120]u32 }
+-- output { true }
+
+entry is_sorted [n] (arrs: [n][num_elems * block_size]u32) : bool =
+  all (\arr ->
+         let result = blocked_radix_sort.sort u32.num_bits u32.get_bit arr
+         in tabulate (num_elems * block_size) (\i -> i == 0 || result[i - 1] <= result[i])
+            |> and)
+      arrs
+
+-- ==
+-- entry: is_stable
+-- random input { [5][5120]u8 }
+-- output { true }
+
+entry is_stable [n] (arrs: [n][num_elems * block_size]u8) : bool =
+  all (\arr ->
+         let (keys, idx) =
+           zip (map (% 5) arr) (iota (num_elems * block_size))
+           |> blocked_radix_sort.sort u8.num_bits (\bit (k, _) -> u8.get_bit bit k)
+           |> unzip
+         in tabulate (num_elems * block_size) (\i ->
+              i == 0 || keys[i - 1] != keys[i] || idx[i - 1] < idx[i])
+            |> and)
+      arrs
+
+-- ==
 -- entry: bench
 -- random input { [10000000]u32 }
 entry bench =
