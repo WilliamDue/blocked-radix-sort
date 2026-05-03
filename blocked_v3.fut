@@ -174,6 +174,7 @@ entry main [n] (xss: [n][num_elems][block_size]i64) =
 
 -- ==
 -- entry: test_sort_reversed
+-- input { }
 -- output { true }
 
 entry test_sort_reversed : bool =
@@ -212,6 +213,6 @@ entry is_stable [n] (arrs: [n][num_elems * block_size]u8) : bool =
 
 -- ==
 -- entry: bench
--- random input { [10000000]u32 }
+-- random input { [10240000]u32 }
 entry bench =
   blocked_radix_sort.sort u32.num_bits u32.get_bit
