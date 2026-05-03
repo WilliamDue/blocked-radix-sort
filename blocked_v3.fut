@@ -6,6 +6,9 @@ module blocked_radix_sort = {
 
   def num_bins = 2 ** i64.i32 bit_chunk
 
+  def gather [n] [m] 'a (as: [n]a) (is: [m]i64) : [m]a =
+    map (\i -> #[unsafe] as[i]) is
+
   #[inline]
   def count 'a
             (f: a -> i64)
@@ -13,7 +16,8 @@ module blocked_radix_sort = {
     let dest = rep 0
     in loop dest
        for i < num_elems do
-         let is = map f vs[i::num_elems]
+         let js = sized block_size (i..(num_elems + i)..<num_elems * block_size)
+         let is = gather vs js |> map f
          in reduce_by_index dest (+) 0 is (rep 1)
 
   #[inline]
@@ -22,9 +26,9 @@ module blocked_radix_sort = {
               (digit_n: i32)
               (a: a) : i64 =
     i64.i32
-    <| loop acc = 0
-       for i < bit_chunk do
-         acc + (get_bit (digit_n + i) a << i)
+    <| (loop acc = 0
+        for i < bit_chunk do
+          acc + (get_bit (digit_n + i) a << i))
 
   #[inline]
   def expresum [n] (xs: [n]i64) : [n]i64 =
@@ -34,6 +38,7 @@ module blocked_radix_sort = {
   def sequential_offsets [k] (bins: [k]i16) : [k]i16 =
     (loop (offsets, acc) = (replicate k 0i16, 0i16)
      for i < k do
+       #[unsafe]
        let offsets[i] = acc
        in (offsets, acc + bins[i])).0
 
@@ -44,47 +49,50 @@ module blocked_radix_sort = {
     tabulate block_size (\i ->
                            let c =
                              loop acc = 0
-                             for v in as[i * num_elems : (i + 1) * num_elems] do
+                             for v in #[unsafe] as[i * num_elems:(i + 1) * num_elems] do
                                acc + f v
                            in (c, i16.(i64 num_elems - c)))
 
+  #[inline]
   def add2 (a0: i16, a1: i16) (b0: i16, b1: i16) =
     (a0 + b0, a1 + b1)
 
-  def gather [n] [m] 'a (as: [n]a) (is: [m]i64) : [m]a =
-    map (\i -> #[unsafe] as[i]) is
-
+  #[inline]
   def sort_block 'a
                  (get_bit: i32 -> a -> i32)
                  (ith_digit: i32)
                  (as: [num_elems * block_size]a) : [num_elems * block_size]a =
+    #[unsafe]
     let get = i16.i32 <-< get_bit ith_digit
     let offsets =
-      elems_reduce get as
-      |> scan add2 (0, 0)
-    let (o, _) = #[unsafe] offsets[block_size - 1]
-    let accs = replicate block_size (0i16, 0i16)
+      manifest (elems_reduce get as)
+      |> scan add2 (0i16, 0i16)
+    let (_, z) = #[unsafe] offsets[block_size - 1]
+    let accs = manifest (replicate block_size (0i16, 0i16))
+    let dst = manifest (#[scratch] copy as)
     let (dst, _) =
-      loop (dst, accs) = (copy as, accs)
+      loop (dst, accs)
       for k < num_elems do
-        let js = #[trace] sized block_size (k..(num_elems + k)..<num_elems * block_size)
-        let is =
-          map3 (\i j (a0, a1) ->
-                  let f = #[unsafe] get as[j]
-                  let (o0, o1) = if i == 0 then (0i16, 0i16) else #[unsafe] offsets[i - 1]
-                  in i64.i16 (if f == 1
-                              then o0 + a0
-                              else o + o1 + a1))
-               (iota block_size)
-               js
-               accs
+        let js = sized block_size (k..(num_elems + k)..<num_elems * block_size)
         let vs = gather as js
-        let dst = scatter (#[scratch] copy dst) is vs
-        let accs =
-          map2 (\(a0, a1) v ->
-                  let i = get v in (a0 + i, a1 + (1 ^ i)))
-               accs
+        let js' = sized block_size (k..(num_elems + k)..<num_elems * block_size)
+        let vs' = gather as js'
+        let is =
+          map3 (\v (a1, a0) (p1, p0) ->
+                  let b = get v
+                  in i64.i16 (if b == 0
+                              then p0 + a0
+                              else z + p1 + a1))
                vs
+               accs
+               offsets
+        let dst = scatter dst is vs
+        let accs =
+          map2 (\(a1, a0) v ->
+                  let b = get v
+                  in (a1 + b, a0 + (1i16 ^ b)))
+               accs
+               vs'
         in (dst, accs)
     in dst
 
@@ -93,15 +101,22 @@ module blocked_radix_sort = {
            (digit_n: i32)
            (get_bit: i32 -> a -> i32)
            (as: [num_elems * block_size]a) =
-    let as = manifest as
-    let bins = count (get_bin get_bit digit_n) as
+    let vs = manifest as
+    let bins = count (get_bin get_bit digit_n) vs
     let offsets = sequential_offsets bins
     let sorted =
-      loop as
+      loop vs
       for i < bit_chunk do
-        sort_block get_bit (i + digit_n) as
+        sort_block get_bit (i + digit_n) vs
     in (sorted, bins, offsets)
+
+  def sort [n] 'a
+           (digit_n: i32)
+           (get_bit: i32 -> a -> i32)
+           (ass: [n * (num_elems * block_size)]a) =
+    #[incremental_flattening(only_intra)]
+    map (step digit_n get_bit) (unflatten ass)
 }
 
-entry main (xs: [2][2]i64) =
-  blocked_radix_sort.step 0 i64.get_bit (flatten xs :> [num_elems * block_size]i64)
+entry main [n] (xss: [n][num_elems][block_size]i64) =
+  blocked_radix_sort.sort 0 i64.get_bit (flatten (map flatten xss))
