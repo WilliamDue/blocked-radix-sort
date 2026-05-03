@@ -75,10 +75,9 @@ module blocked_radix_sort = {
       loop as
       for i < bit_chunk do
         let get = i16.i32 <-< get_bit (i + digit_n)
-        let offsets =
-          manifest (elems_reduce get as)
-          |> scan add2 (0i16, 0i16)
-        let (_, z) = #[unsafe] offsets[block_size - 1]
+        let counts = manifest (elems_reduce get as)
+        let (_, z) = reduce add2 (0i16, 0i16) counts
+        let offsets = exscan add2 (0i16, 0i16) counts
         let accs = manifest (replicate block_size (0i16, 0i16))
         let dst = manifest (#[scratch] copy as)
         let (dst, _) =
@@ -105,13 +104,70 @@ module blocked_radix_sort = {
         in dst
     in (sorted, bins, offsets)
 
-  def sort [n] 'a
-           (digit_n: i32)
-           (get_bit: i32 -> a -> i32)
-           (ass: [n * (num_elems * block_size)]a) =
-    #[incremental_flattening(only_intra)]
-    map (step digit_n get_bit) (unflatten ass)
+  -- | One full pass of the blocked radix sort: locally sort every block for
+  -- bits digit_n..digit_n+bit_chunk-1, then redistribute elements globally.
+  def sort_step [n] 'a
+                (digit_n: i32)
+                (get_bit: i32 -> a -> i32)
+                (ass: [n * (num_elems * block_size)]a) : *[n * (num_elems * block_size)]a =
+    let (sorted_blocks, histograms, old_offsets) =
+      #[incremental_flattening(only_intra)]
+      unflatten ass
+      |> map (step digit_n get_bit)
+      |> unzip3
+    let sorted = flatten sorted_blocks |> sized (n * (num_elems * block_size))
+    -- Compute global destination offsets for each (block, bin) pair by
+    -- transposing the histogram, computing a global exclusive prefix scan,
+    -- then transposing back.
+    let new_offsets =
+      histograms
+      |> transpose
+      |> flatten
+      |> map i64.i16
+      |> expresum
+      |> unflatten
+      |> transpose
+    let is =
+      tabulate (n * (num_elems * block_size)) (\i ->
+        let elem = sorted[i]
+        let bin = get_bin get_bit digit_n elem
+        let block_idx = i / (num_elems * block_size)
+        let new_offset = new_offsets[block_idx][bin]
+        let old_block_offset = i64.i16 old_offsets[block_idx][bin]
+        let old_offset = (num_elems * block_size) * block_idx + old_block_offset
+        in (i - old_offset) + new_offset)
+    in scatter (copy sorted) is sorted
+
+  -- | This implementation of radix sort is based on an algorithm which
+  -- splits the input up into blocks, sorts them and collect them [1].
+  -- This leads to performance gains if you choose a good `block` size
+  -- based on the GPU thread block. The sorting algorithm is stable and
+  -- its work is *O(k n)* and the span is *O(k log(n))* where *k* is the
+  -- number of bits in the elements being sorted. In the analysis of the
+  -- asymptotics we assume the `block` size is some constant.
+  --
+  -- [1] N. Satish, M. Harris and M. Garland, "Designing efficient
+  -- sorting algorithms for manycore GPUs," 2009 IEEE International
+  -- Symposium on Parallel & Distributed Processing, Rome, Italy, 2009,
+  -- pp. 1-10, doi: 10.1109/IPDPS.2009.5161005.
+  def sort [n] 't
+           (num_bits: i32)
+           (get_bit: i32 -> t -> i32)
+           (xs: [n]t) : [n]t =
+    let iters = if n == 0 then 0 else (num_bits + bit_chunk - 1) / bit_chunk
+    let n_blocks = n / (num_elems * block_size)
+    let xs = sized (n_blocks * (num_elems * block_size)) xs
+    in sized n
+       <| loop xs = copy xs
+          for i < iters do
+            sort_step (i * bit_chunk) get_bit xs
 }
 
 entry main [n] (xss: [n][num_elems][block_size]i64) =
-  blocked_radix_sort.sort 0 i64.get_bit (flatten (map flatten xss))
+  blocked_radix_sort.sort_step 0 i64.get_bit (flatten (map flatten xss))
+
+-- ==
+-- entry: bench
+-- random input { [10000000]u32 }
+entry bench =
+  blocked_radix_sort.sort u32.num_bits u32.get_bit
