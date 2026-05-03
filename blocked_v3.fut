@@ -76,8 +76,10 @@ module blocked_radix_sort = {
       for i < bit_chunk do
         let get = i16.i32 <-< get_bit (i + digit_n)
         let counts = manifest (elems_reduce get as)
-        let (_, z) = reduce add2 (0i16, 0i16) counts
-        let offsets = exscan add2 (0i16, 0i16) counts
+        let inc_scan = scan add2 (0i16, 0i16) counts
+        let (_, z) = #[unsafe] inc_scan[block_size - 1]
+        let offsets = rotate (-1) inc_scan
+        let offsets[0] = (0i16, 0i16)
         let accs = manifest (replicate block_size (0i16, 0i16))
         let dst = manifest (#[scratch] copy as)
         let (dst, _) =
