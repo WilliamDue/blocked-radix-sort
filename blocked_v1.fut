@@ -113,6 +113,6 @@ def blocked_radix_sort [n] 't
 
 -- ==
 -- entry: bench
--- notest random input { [71680000]u32 }
+-- notest random input { [10240000]u32 }
 entry bench =
   blocked_radix_sort 256 u32.num_bits u32.get_bit

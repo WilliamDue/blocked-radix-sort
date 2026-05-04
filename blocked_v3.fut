@@ -1,8 +1,8 @@
-def num_elems : i64 = 28
+def num_elems : i64 = 20
 def block_size : i64 = 256
 
 module blocked_radix_sort = {
-  def bit_chunk : i32 = 4
+  def bit_chunk : i32 = 8
 
   def num_bins = 2 ** i64.i32 bit_chunk
 
@@ -67,8 +67,9 @@ module blocked_radix_sort = {
   def exscan_last [n] 'a (op: a -> a -> a) (ne: a) (as: [n]a) : (*[n]a, a) =
     let is = iota n |> map (+ 1)
     let vs = scan op ne as
-    let l = scatter [ne] (map (\i -> if i == n - 1 then 0 else -1) (iota n)) vs
-    in (scatter (replicate n ne) is vs, l[0])
+    let l = scatter (manifest [ne]) (map (\i -> if i == n - 1 then 0 else -1) (iota n)) vs
+    let dst = manifest (replicate n ne)
+    in (scatter dst is vs, l[0])
 
   #[inline]
   def step 'a
@@ -77,7 +78,7 @@ module blocked_radix_sort = {
            (as: [num_elems * block_size]a) =
     let as = manifest as
     let bins = count (get_bin get_bit digit_n) as
-    let offsets = sequential_offsets bins
+    let offsets = exscan (+) 0 bins
     let sorted =
       loop as
       for i < bit_chunk do
@@ -89,23 +90,21 @@ module blocked_radix_sort = {
         let (dst, _) =
           loop (dst, accs)
           for k < num_elems do
-            let is =
+            let (is, accs) =
               iota_stride block_size num_elems k
               |> map3 (\(a1, a0) (p1, p0) j ->
-                         let b = get as[j]
-                         in i64.i16 (if b == 0
-                                     then p0 + a0
-                                     else z + p1 + a1))
+                         let b = #[unsafe] get as[j]
+                         let idx =
+                           i64.i16 (if b == 0
+                                    then p0 + a0
+                                    else z + p1 + a1)
+                         let acc = (a1 + b, a0 + (1i16 ^ b))
+                         in (idx, acc))
                       accs
                       offsets
+              |> unzip
             let dst =
               scatter dst is (gather as (iota_stride block_size num_elems k))
-            let accs =
-              iota_stride block_size num_elems k
-              |> map2 (\(a1, a0) j ->
-                         let b = get as[j]
-                         in (a1 + b, a0 + (1i16 ^ b)))
-                      accs
             in (dst, accs)
         in dst
     in (sorted, bins, offsets)
@@ -169,14 +168,10 @@ module blocked_radix_sort = {
             sort_step (i * bit_chunk) get_bit xs
 }
 
-entry main [n] (xss: [n][num_elems][block_size]i64) =
-  blocked_radix_sort.sort_step 0 i64.get_bit (flatten (map flatten xss))
-
 -- ==
 -- entry: test_sort_reversed
 -- nobench input { }
 -- output { true }
-
 entry test_sort_reversed : bool =
   let n = num_elems * block_size
   let xs = map (u32.i64 <-< (n - 1 -)) (iota n)
@@ -185,9 +180,8 @@ entry test_sort_reversed : bool =
 
 -- ==
 -- entry: is_sorted
--- nobench random input { [5][5120]u32 }
+-- nobench random input { [5][7168]u32 }
 -- output { true }
-
 entry is_sorted [n] (arrs: [n][num_elems * block_size]u32) : bool =
   all (\arr ->
          let result = blocked_radix_sort.sort u32.num_bits u32.get_bit arr
@@ -197,9 +191,8 @@ entry is_sorted [n] (arrs: [n][num_elems * block_size]u32) : bool =
 
 -- ==
 -- entry: is_stable
--- nobench random input { [5][5120]u8 }
+-- nobench random input { [5][7168]u8 }
 -- output { true }
-
 entry is_stable [n] (arrs: [n][num_elems * block_size]u8) : bool =
   all (\arr ->
          let (keys, idx) =
@@ -213,6 +206,6 @@ entry is_stable [n] (arrs: [n][num_elems * block_size]u8) : bool =
 
 -- ==
 -- entry: bench
--- notest random input { [71680000]u32 }
+-- notest random input { [10240000]u32 }
 entry bench =
   blocked_radix_sort.sort u32.num_bits u32.get_bit

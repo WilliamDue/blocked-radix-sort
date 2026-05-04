@@ -1,0 +1,894 @@
+name_source {14315}
+
+types {
+
+}
+
+
+
+entry("bench",
+      {xs: []u32},
+      []u32)
+  entry_bench (xs_mem_14145 : mem@device,
+               n₀_10770 : i64,
+               xs_10771 : [n₀_10770]i32 @ xs_mem_14145 ->
+                          {offset: 0i64;
+                           strides: [1i64];
+                           shape: [n₀_10770]})
+  : {mem@device#([0], []),
+     [n₀_10770]i32 @ ?0@device ->
+     {offset: 0i64;
+      strides: [1i64];
+      shape: [n₀_10770]}#([2], [1])} = {
+  "blocked_v3.fut:214:3-51->blocked_v3.fut:162:17-77"
+  let {cond_12498 : bool} =
+    eq_i64(n₀_10770, 0i64)
+  "blocked_v3.fut:214:3-51->blocked_v3.fut:162:17-77"
+  let {iters_12499 : i32} =
+    if cond_12498
+    then {0i32} else {4i32}
+    : {i32}
+  "blocked_v3.fut:214:3-51->blocked_v3.fut:163:22-47"
+  let {n_blocks_12503 : i64} =
+    sdiv64(n₀_10770, 7168i64)
+  "blocked_v3.fut:214:3-51->blocked_v3.fut:164:21-56"
+  let {d<{(*) n_blocks ((*) num_elems block_size)}>_12504 : i64} =
+    mul64(7168i64, n_blocks_12503)
+  "blocked_v3.fut:214:3-51->blocked_v3.fut:164:14-60"
+  let {dim_match_12505 : bool} =
+    eq_i64(d<{(*) n_blocks ((*) num_elems block_size)}>_12504, n₀_10770)
+  "blocked_v3.fut:214:3-51->blocked_v3.fut:164:14-60"
+  let {empty_or_match_cert_12506 : unit} =
+    assert(dim_match_12505, {"Value of (desugared) shape [", n₀_10770 : i64, "] cannot match shape of type \"[", d<{(*) n_blocks ((*) num_elems block_size)}>_12504 : i64, "]u32\"."})
+  "blocked_v3.fut:214:3-51"
+  let {bytes_14146 : i64} =
+    mul_nw64(28672i64, n_blocks_12503)
+  "blocked_v3.fut:214:3-51"
+  let {loop_nonempty_12511 : bool} =
+    slt32(0i32, iters_12499)
+  "blocked_v3.fut:214:3-51->blocked_v3.fut:168:13-49->blocked_v3.fut:117:24-120:20"
+  let {binop_x_12513 : bool} =
+    sle64(0i64, n_blocks_12503)
+  "blocked_v3.fut:214:3-51"
+  let {loop_not_taken_12515 : bool} =
+    neg_bool loop_nonempty_12511
+  "blocked_v3.fut:214:3-51"
+  let {protect_assert_disj_12516 : bool} =
+    logor(binop_x_12513, loop_not_taken_12515)
+  "blocked_v3.fut:214:3-51->blocked_v3.fut:168:13-49->blocked_v3.fut:117:24-120:20"
+  let {dim_ok_cert_12517 : unit} =
+    assert(protect_assert_disj_12516, {"Cannot unflatten array of shape [", d<{(*) n_blocks ((*) num_elems block_size)}>_12504 : i64, "] to array of shape [", n_blocks_12503 : i64, "][", 7168i64 : i64, "]"})
+  "blocked_v3.fut:214:3-51->blocked_v3.fut:168:13-49->blocked_v3.fut:121:7-36"
+  let {bytes_14214 : i64} =
+    #[incremental_flattening(only_intra)]
+    mul_nw64(512i64, n_blocks_12503)
+  let {bytes_14220 : i64} =
+    mul_nw64(2048i64, n_blocks_12503)
+  "blocked_v3.fut:214:3-51->blocked_v3.fut:166:8-168:49->blocked_v3.fut:165:8-13"
+  let {dim_match_12785 : bool} =
+    eq_i64(n₀_10770, d<{(*) n_blocks ((*) num_elems block_size)}>_12504)
+  "blocked_v3.fut:214:3-51->blocked_v3.fut:166:8-168:49->blocked_v3.fut:165:8-13"
+  let {empty_or_match_cert_12786 : unit} =
+    assert(dim_match_12785, {"Value of (desugared) shape [", d<{(*) n_blocks ((*) num_elems block_size)}>_12504 : i64, "] cannot match shape of type \"[", n₀_10770 : i64, "]u32\"."})
+  "blocked_v3.fut:214:3-51->blocked_v3.fut:166:11-168:49"
+  let {sized_res_12509 : [d<{(*) n_blocks ((*) num_elems block_size)}>_12504]i32 @ xs_mem_14145 ->
+                         {offset: 0i64;
+                          strides: [1i64];
+                          shape: [d<{(*) n_blocks ((*) num_elems block_size)}>_12504]}} =
+    #{empty_or_match_cert_12506}
+    reshape(xs_10771,
+            (0::1=>[d<{(*) n_blocks ((*) num_elems block_size)}>_12504];
+             [d<{(*) n_blocks ((*) num_elems block_size)}>_12504]))
+  "blocked_v3.fut:214:3-51"
+  let {mem_14147 : mem@device} =
+    alloc(bytes_14146, @device)
+  "blocked_v3.fut:214:3-51"
+  let {<|_rhs_12510 : [d<{(*) n_blocks ((*) num_elems block_size)}>_12504]i32 @ mem_14147 ->
+                      {offset: 0i64;
+                       strides: [1i64];
+                       shape: [d<{(*) n_blocks ((*) num_elems block_size)}>_12504]}} =
+    copy(sized_res_12509)
+  "blocked_v3.fut:214:3-51->blocked_v3.fut:168:13-49"
+  let {d<{(*) num_bins n}>_12512 : i64} =
+    mul64(256i64, n_blocks_12503)
+  "blocked_v3.fut:214:3-51->blocked_v3.fut:168:13-49->blocked_v3.fut:121:7-36->blocked_v3.fut:89:19-47"
+  let {mem_14148 : mem@device} =
+    alloc(28672i64, @device)
+  "blocked_v3.fut:214:3-51->blocked_v3.fut:168:13-49->blocked_v3.fut:121:7-36->blocked_v3.fut:89:19-47"
+  let {manifest_arg_12520 : [7168i64]i32 @ mem_14148 ->
+                            {offset: 0i64;
+                             strides: [1i64];
+                             shape: [7168i64]}} =
+    scratch(i32, 7168i64)
+  "blocked_v3.fut:214:3-51->blocked_v3.fut:168:13-49->blocked_v3.fut:121:7-36->blocked_v3.fut:88:30-63"
+  let {mem_14149 : mem@device} =
+    alloc(512i64, @device)
+  "blocked_v3.fut:214:3-51->blocked_v3.fut:168:13-49->blocked_v3.fut:121:7-36->blocked_v3.fut:88:30-63"
+  let {defunc_0_map_res_12521 : [256i64]i16 @ mem_14149 ->
+                                {offset: 0i64;
+                                 strides: [1i64];
+                                 shape: [256i64]}} =
+    replicate([256i64], 0i16)
+  "blocked_v3.fut:214:3-51->blocked_v3.fut:168:13-49->blocked_v3.fut:121:7-36->blocked_v3.fut:88:20-63"
+  let {mem_14154 : mem@device} =
+    alloc(512i64, @device)
+  "blocked_v3.fut:214:3-51->blocked_v3.fut:168:13-49->blocked_v3.fut:121:7-36->blocked_v3.fut:88:20-63"
+  let {manifest_res_12522 : [256i64]i16 @ mem_14154 ->
+                            {offset: 0i64;
+                             strides: [1i64];
+                             shape: [256i64]}} =
+    manifest(defunc_0_map_res_12521, (0))
+  "blocked_v3.fut:214:3-51->blocked_v3.fut:168:13-49->blocked_v3.fut:121:7-36->blocked_v3.fut:87:33-69"
+  let {mem_14155 : mem@device} =
+    alloc(2i64, @device)
+  "blocked_v3.fut:214:3-51->blocked_v3.fut:168:13-49->blocked_v3.fut:121:7-36->blocked_v3.fut:87:33-69"
+  let {manifest_arg_12523 : [1i64]i16 @ mem_14155 ->
+                            {offset: 0i64;
+                             strides: [1i64];
+                             shape: [1i64]}} =
+    replicate([1i64], 0i16)
+  let {segscan_tblock_size_14010 : i64} =
+    get_size(segscan_tblock_size_14009, thread_block_size)
+  let {num_tblocks_14012 : i64} =
+    calc_num_tblocks(d<{(*) num_bins n}>_12512, segscan_num_tblocks_14011, segscan_tblock_size_14010)
+  let {segmap_tblock_size_14066 : i64} =
+    get_size(segmap_tblock_size_14019, thread_block_size)
+  let {num_tblocks_14067 : i64} =
+    calc_num_tblocks(d<{(*) n_blocks ((*) num_elems block_size)}>_12504, segmap_num_tblocks_14021, segmap_tblock_size_14066)
+  "blocked_v3.fut:214:3-51->blocked_v3.fut:168:13-49->blocked_v3.fut:121:7-36"
+  let {mem_14212 : mem@device} =
+    #[incremental_flattening(only_intra)]
+    alloc(bytes_14146, @device)
+  "blocked_v3.fut:214:3-51->blocked_v3.fut:168:13-49->blocked_v3.fut:121:7-36"
+  let {mem_14215 : mem@device} =
+    #[incremental_flattening(only_intra)]
+    alloc(bytes_14214, @device)
+  "blocked_v3.fut:214:3-51->blocked_v3.fut:168:13-49->blocked_v3.fut:121:7-36"
+  let {mem_14218 : mem@device} =
+    #[incremental_flattening(only_intra)]
+    alloc(bytes_14214, @device)
+  let {mem_14221 : mem@device} =
+    alloc(bytes_14220, @device)
+  let {total_size_14276 : i64} =
+    mul_nw64(512i64, n_blocks_12503)
+  let {color_14263 : mem@device} =
+    alloc(total_size_14276, @device)
+  let {total_size_14277 : i64} =
+    mul_nw64(512i64, n_blocks_12503)
+  let {color_14264 : mem@device} =
+    alloc(total_size_14277, @device)
+  let {total_size_14278 : i64} =
+    mul_nw64(512i64, n_blocks_12503)
+  let {color_14265 : mem@device} =
+    alloc(total_size_14278, @device)
+  let {total_size_14279 : i64} =
+    mul_nw64(512i64, n_blocks_12503)
+  let {color_14266 : mem@device} =
+    alloc(total_size_14279, @device)
+  "blocked_v3.fut:214:3-51->blocked_v3.fut:166:11-168:49"
+  let {ext_mem_14227 : mem@device,
+       <|_rhs_12532 : [d<{(*) n_blocks ((*) num_elems block_size)}>_12504]i32 @ ext_mem_14227 ->
+                      {offset: 0i64;
+                       strides: [1i64];
+                       shape: [d<{(*) n_blocks ((*) num_elems block_size)}>_12504]}} =
+    loop {mem_param_14158 : mem@device,
+          xs_12534 : [d<{(*) n_blocks ((*) num_elems block_size)}>_12504]i32 @ mem_param_14158 ->
+                     {offset: 0i64;
+                      strides: [1i64];
+                      shape: [d<{(*) n_blocks ((*) num_elems block_size)}>_12504]}} = {mem_14147, <|_rhs_12510}
+    for i_12533:i32 < iters_12499 do {
+      "blocked_v3.fut:214:3-51->blocked_v3.fut:168:26-37"
+      let {sort_step_arg0_12535 : i32} =
+        mul32(8i32, i_12533)
+      "blocked_v3.fut:214:3-51->blocked_v3.fut:168:13-49->blocked_v3.fut:117:24-120:20"
+      let {reshape_13772 : [n_blocks_12503][7168i64]i32 @ mem_param_14158 ->
+                           {offset: 0i64;
+                            strides: [mul_nw64 (1i64) (7168i64), 1i64];
+                            shape: [n_blocks_12503, 7168i64]}} =
+        #[incremental_flattening(only_intra)]
+        #{dim_ok_cert_12517}
+        reshape(xs_12534,
+                (0::1=>[n_blocks_12503][7168i64];
+                 [n_blocks_12503][7168i64]))
+      "blocked_v3.fut:214:3-51->blocked_v3.fut:168:13-49->blocked_v3.fut:121:7-36"
+      let {defunc_0_f_res_pretr_13850 : [n_blocks_12503][7168i64]i32 @ mem_14212 ->
+                                        {offset: 0i64;
+                                         strides: [7168i64, 1i64];
+                                         shape: [n_blocks_12503, 7168i64]},
+           defunc_0_f_res_pretr_13851 : [n_blocks_12503][256i64]i16 @ mem_14215 ->
+                                        {offset: 0i64;
+                                         strides: [256i64, 1i64];
+                                         shape: [n_blocks_12503, 256i64]},
+           defunc_0_f_res_pretr_13852 : [n_blocks_12503][256i64]i16 @ mem_14218 ->
+                                        {offset: 0i64;
+                                         strides: [256i64, 1i64];
+                                         shape: [n_blocks_12503, 256i64]}} =
+        #[incremental_flattening(only_intra)]
+        segmap(block; ; grid=n_blocks_12503; blocksize=256i64)
+        (gtid_13853 < n_blocks_12503) (~phys_tblock_id_13854) : {[7168i64]i32, [256i64]i16, [256i64]i16} {
+          let {color_14262 : mem@shared} =
+            alloc(28672i64, @shared)
+          let {color_14267 : mem@shared} =
+            alloc(512i64, @shared)
+          let {color_14268 : mem@shared} =
+            alloc(512i64, @shared)
+          let {color_14269 : mem@shared} =
+            alloc(28672i64, @shared)
+          let {color_14270 : mem@shared} =
+            alloc(512i64, @shared)
+          let {color_14271 : mem@shared} =
+            alloc(512i64, @shared)
+          let {color_14272 : mem@shared} =
+            alloc(512i64, @shared)
+          let {color_14273 : mem@shared} =
+            alloc(512i64, @shared)
+          let {color_14274 : mem@shared} =
+            alloc(512i64, @shared)
+          let {eta_p_13855 : [7168i64]i32 @ mem_param_14158 ->
+                             {offset: mul_nw64 (gtid_13853) (7168i64);
+                              strides: [1i64];
+                              shape: [7168i64]}} =
+            reshape_13772[gtid_13853, 0i64 :+ 7168i64 * 1i64]
+          "blocked_v3.fut:214:3-51->blocked_v3.fut:168:13-49->blocked_v3.fut:121:7-36->blocked_v3.fut:79:14-25"
+          let {manifest_res_13857 : [7168i64]i32 @ color_14262 ->
+                                    {offset: 0i64;
+                                     strides: [1i64];
+                                     shape: [7168i64]}} =
+            manifest(eta_p_13855, (0))
+          "blocked_v3.fut:214:3-51->blocked_v3.fut:168:13-49->blocked_v3.fut:121:7-36->blocked_v3.fut:80:16-50->blocked_v3.fut:21:49-22:21"
+          let {defunc_0_map_res_13858 : [256i64]i16 @ color_14274 ->
+                                        {offset: 0i64;
+                                         strides: [1i64];
+                                         shape: [256i64]}} =
+            replicate([256i64], 0i16)
+          let {defunc_0_count_res_13859 : [256i64]i16 @ color_14274 ->
+                                          {offset: 0i64;
+                                           strides: [1i64];
+                                           shape: [256i64]}} =
+            loop {dest_13861 : *[256i64]i16 @ color_14274 ->
+                               {offset: 0i64;
+                                strides: [1i64];
+                                shape: [256i64]}} = {defunc_0_map_res_13858}
+            for i_13860:i64 < 28i64 do {
+              let {defunc_0_reduce_by_index_res_13862 : [256i64]i16 @ color_14274 ->
+                                                        {offset: 0i64;
+                                                         strides: [1i64];
+                                                         shape: [256i64]}} =
+                seghist(inblock; )
+                (gtid_13863 < 256i64) (~phys_tid_13864)
+                : {i64, i16} {
+                  "blocked_v3.fut:214:3-51->blocked_v3.fut:168:13-49->blocked_v3.fut:121:7-36->blocked_v3.fut:80:16-50->blocked_v3.fut:25:19-53->blocked_v3.fut:12:28-36"
+                  let {lifted_lambda_res_13867 : i64} =
+                    mul64(28i64, gtid_13863)
+                  "blocked_v3.fut:214:3-51->blocked_v3.fut:168:13-49->blocked_v3.fut:121:7-36->blocked_v3.fut:80:16-50->blocked_v3.fut:25:19-53->blocked_v3.fut:12:13-23"
+                  let {lifted_lambda_res_13868 : i64} =
+                    add64(i_13860, lifted_lambda_res_13867)
+                  "blocked_v3.fut:214:3-51->blocked_v3.fut:168:13-49->blocked_v3.fut:121:7-36->blocked_v3.fut:80:16-50->blocked_v3.fut:26:19-31->blocked_v3.fut:16:26-31"
+                  let {lifted_lambda_res_13869 : i32} =
+                    manifest_res_13857[lifted_lambda_res_13868]
+                  "blocked_v3.fut:214:3-51->blocked_v3.fut:168:13-49->blocked_v3.fut:121:7-36->blocked_v3.fut:80:16-50->blocked_v3.fut:26:32-40->blocked_v3.fut:35:9-37:47"
+                  let {<|_rhs_13870 : i32} =
+                    loop {acc_13872 : i32} = {0i32}
+                    for i_13871:i32 < 8i32 do {
+                      "blocked_v3.fut:214:3-51->blocked_v3.fut:168:13-49->blocked_v3.fut:121:7-36->blocked_v3.fut:80:16-50->blocked_v3.fut:26:32-40->blocked_v3.fut:37:35-38"
+                      let {get_bit_arg0_13873 : i32} =
+                        add32(sort_step_arg0_12535, i_13871)
+                      "blocked_v3.fut:214:3-51->blocked_v3.fut:168:13-49->blocked_v3.fut:121:7-36->blocked_v3.fut:80:16-50->blocked_v3.fut:26:32-40->blocked_v3.fut:37:18-41->blocked_v3.fut:214:40-51"
+                      let {unsign_arg0_13874 : i32} =
+                        ashr32(lifted_lambda_res_13869, get_bit_arg0_13873)
+                      "blocked_v3.fut:214:3-51->blocked_v3.fut:168:13-49->blocked_v3.fut:121:7-36->blocked_v3.fut:80:16-50->blocked_v3.fut:26:32-40->blocked_v3.fut:37:18-41->blocked_v3.fut:214:40-51"
+                      let {unsign_arg0_13875 : i32} =
+                        and32(1i32, unsign_arg0_13874)
+                      "blocked_v3.fut:214:3-51->blocked_v3.fut:168:13-49->blocked_v3.fut:121:7-36->blocked_v3.fut:80:16-50->blocked_v3.fut:26:32-40->blocked_v3.fut:37:42-46"
+                      let {+_rhs_13876 : i32} =
+                        shl32(unsign_arg0_13875, i_13871)
+                      "blocked_v3.fut:214:3-51->blocked_v3.fut:168:13-49->blocked_v3.fut:121:7-36->blocked_v3.fut:80:16-50->blocked_v3.fut:26:32-40->blocked_v3.fut:37:15-46"
+                      let {loopres_13877 : i32} =
+                        add32(acc_13872, +_rhs_13876)
+                      in {loopres_13877}
+                    }
+                  "blocked_v3.fut:214:3-51->blocked_v3.fut:168:13-49->blocked_v3.fut:121:7-36->blocked_v3.fut:80:16-50->blocked_v3.fut:26:32-40->blocked_v3.fut:35:5-37:47->blocked_v3.fut:34:5-12"
+                  let {i32_res_13878 : i64} =
+                    sext i32 <|_rhs_13870 to i64
+                  return {returns i32_res_13878,
+                          returns 1i16}
+                }
+                ([256i64], 1i64,
+                {dest_13861},
+                {0i16},
+                ,
+                \ {eta_p_13879 : i16,
+                   eta_p_13880 : i16}
+                  : {i16} ->
+                  "blocked_v3.fut:214:3-51->blocked_v3.fut:168:13-49->blocked_v3.fut:121:7-36->blocked_v3.fut:80:16-50->blocked_v3.fut:27:34-37"
+                  let {defunc_0_f_res_13881 : i16} =
+                    add16(eta_p_13879, eta_p_13880)
+                  in {defunc_0_f_res_13881})
+              in {defunc_0_reduce_by_index_res_13862}
+            }
+          "blocked_v3.fut:214:3-51->blocked_v3.fut:168:13-49->blocked_v3.fut:121:7-36->blocked_v3.fut:81:29-46"
+          let {defunc_0_map_res_13882 : [256i64]i16 @ color_14267 ->
+                                        {offset: 0i64;
+                                         strides: [1i64];
+                                         shape: [256i64]}} =
+            replicate([256i64], 0i16)
+          let {scatter_res_13883 : [256i64]i16 @ color_14267 ->
+                                   {offset: 0i64;
+                                    strides: [1i64];
+                                    shape: [256i64]}} =
+            with_acc({([256i64], {defunc_0_map_res_13882})},
+            \ {acc_cert_13884 : unit,
+               acc_p_13885 : acc(acc_cert_13884, [256i64], {i16})}
+              : {acc(acc_cert_13884, [256i64], {i16})} ->
+              let {acc_res_13886 : acc(acc_cert_13884, [256i64], {i16})} =
+                segscan(inblock; )
+                (gtid_13887 < 256i64) (~phys_tid_13888)
+                : {i16, acc(acc_cert_13884, [256i64], {i16})} {
+                  let {x_13889 : i16} =
+                    defunc_0_count_res_13859[gtid_13887]
+                  return {returns x_13889,
+                          returns acc_p_13885}
+                }
+                ({0i16},
+                ,
+                \ {eta_p_13892 : i16,
+                   eta_p_13893 : i16}
+                  : {i16} ->
+                  "blocked_v3.fut:214:3-51->blocked_v3.fut:168:13-49->blocked_v3.fut:121:7-36->blocked_v3.fut:81:36-39"
+                  let {defunc_0_op_res_13894 : i16} =
+                    add16(eta_p_13892, eta_p_13893)
+                  in {defunc_0_op_res_13894})
+                \ {x_13895 : i16,
+                   acc_p_13896 : acc(acc_cert_13884, [256i64], {i16})}
+                  : {acc(acc_cert_13884, [256i64], {i16})} ->
+                  let {index_primexp_14144 : i64} =
+                    add64(1i64, gtid_13887)
+                  "blocked_v3.fut:214:3-51->blocked_v3.fut:168:13-49->blocked_v3.fut:121:7-36->blocked_v3.fut:81:29-46"
+                  let {scatter_acc_13898 : acc(acc_cert_13884, [256i64], {i16})} =
+                    update_acc(acc_p_13896, {index_primexp_14144}, {x_13895})
+                  in {scatter_acc_13898}
+              in {acc_res_13886})
+          "blocked_v3.fut:214:3-51->blocked_v3.fut:168:13-49->blocked_v3.fut:121:7-36->blocked_v3.fut:81:19-46"
+          let {manifest_res_13899 : [256i64]i16 @ color_14273 ->
+                                    {offset: 0i64;
+                                     strides: [1i64];
+                                     shape: [256i64]}} =
+            manifest(scatter_res_13883, (0))
+          let {dst_db_copy_14259 : [7168i64]i32 @ color_14262 ->
+                                   {offset: 0i64;
+                                    strides: [1i64];
+                                    shape: [7168i64]}} =
+            copy(manifest_res_13857)
+          let {ext_mem_14209 : mem@shared,
+               ext_mem_unused_14257 : mem@shared,
+               sorted_13900 : [7168i64]i32 @ ext_mem_ext_14307 ->
+                              {offset: 0i64;
+                               strides: [1i64];
+                               shape: [7168i64]},
+               ext_mem_ext_14307 : mem@shared} =
+            loop {mem_param_14172 : mem@shared,
+                  mem_param_out_14258 : mem@shared,
+                  as_13902 : *[7168i64]i32 @ mem_param_ext_14286 ->
+                             {offset: 0i64;
+                              strides: [1i64];
+                              shape: [7168i64]},
+                  mem_param_ext_14286 : mem@shared} = {color_14262, color_14269, dst_db_copy_14259, color_14262}
+            for i_13901:i32 < 8i32 do {
+              "blocked_v3.fut:214:3-51->blocked_v3.fut:168:13-49->blocked_v3.fut:121:7-36->blocked_v3.fut:85:42-51"
+              let {get_bit_arg0_13903 : i32} =
+                add32(sort_step_arg0_12535, i_13901)
+              "blocked_v3.fut:214:3-51->blocked_v3.fut:168:13-49->blocked_v3.fut:121:7-36->blocked_v3.fut:86:32-51->blocked_v3.fut:55:5-60:60"
+              let {defunc_0_map_res_13904 : [256i64]i16 @ color_14268 ->
+                                            {offset: 0i64;
+                                             strides: [1i64];
+                                             shape: [256i64]},
+                   defunc_0_map_res_13905 : [256i64]i16 @ color_14267 ->
+                                            {offset: 0i64;
+                                             strides: [1i64];
+                                             shape: [256i64]}} =
+                segmap(inblock; )
+                (gtid_13906 < 256i64) (~phys_tid_13907) : {i16, i16} {
+                  "blocked_v3.fut:214:3-51->blocked_v3.fut:168:13-49->blocked_v3.fut:121:7-36->blocked_v3.fut:86:32-51->blocked_v3.fut:58:54-65"
+                  let {c_13909 : i64} =
+                    mul64(28i64, gtid_13906)
+                  "blocked_v3.fut:214:3-51->blocked_v3.fut:168:13-49->blocked_v3.fut:121:7-36->blocked_v3.fut:86:32-51->blocked_v3.fut:58:69-72"
+                  let {*_lhs_13910 : i64} =
+                    add64(1i64, gtid_13906)
+                  "blocked_v3.fut:214:3-51->blocked_v3.fut:168:13-49->blocked_v3.fut:121:7-36->blocked_v3.fut:86:32-51->blocked_v3.fut:58:74-85"
+                  let {c_13911 : i64} =
+                    mul64(28i64, *_lhs_13910)
+                  "blocked_v3.fut:214:3-51->blocked_v3.fut:168:13-49->blocked_v3.fut:121:7-36->blocked_v3.fut:86:32-51->blocked_v3.fut:57:30-59:41"
+                  let {j_m_i_13912 : i64} =
+                    sub64(c_13911, c_13909)
+                  "blocked_v3.fut:214:3-51->blocked_v3.fut:168:13-49->blocked_v3.fut:121:7-36->blocked_v3.fut:86:32-51->blocked_v3.fut:57:30-59:41"
+                  let {c_13913 : i16} =
+                    loop {acc_13915 : i16} = {0i16}
+                    for i_13914:i64 < j_m_i_13912 do {
+                      "blocked_v3.fut:214:3-51->blocked_v3.fut:168:13-49->blocked_v3.fut:121:7-36->blocked_v3.fut:86:32-51->blocked_v3.fut:55:5-60:60"
+                      let {index_primexp_13916 : i64} =
+                        add_nw64(c_13909, i_13914)
+                      "blocked_v3.fut:214:3-51->blocked_v3.fut:168:13-49->blocked_v3.fut:121:7-36->blocked_v3.fut:86:32-51->blocked_v3.fut:55:5-60:60"
+                      let {v_13917 : i32} =
+                        as_13902[index_primexp_13916]
+                      "blocked_v3.fut:214:3-51->blocked_v3.fut:168:13-49->blocked_v3.fut:121:7-36->blocked_v3.fut:86:32-51->blocked_v3.fut:59:38-41->blocked_v3.fut:214:40-51"
+                      let {unsign_arg0_13918 : i32} =
+                        ashr32(v_13917, get_bit_arg0_13903)
+                      "blocked_v3.fut:214:3-51->blocked_v3.fut:168:13-49->blocked_v3.fut:121:7-36->blocked_v3.fut:86:32-51->blocked_v3.fut:59:38-41->blocked_v3.fut:214:40-51"
+                      let {unsign_arg0_13919 : i32} =
+                        and32(1i32, unsign_arg0_13918)
+                      "blocked_v3.fut:214:3-51->blocked_v3.fut:168:13-49->blocked_v3.fut:121:7-36->blocked_v3.fut:86:32-51->blocked_v3.fut:59:38-41->blocked_v3.fut:85:19-26"
+                      let {i32_res_13920 : i16} =
+                        sext i32 unsign_arg0_13919 to i16
+                      "blocked_v3.fut:214:3-51->blocked_v3.fut:168:13-49->blocked_v3.fut:121:7-36->blocked_v3.fut:86:32-51->blocked_v3.fut:59:36-41"
+                      let {loopres_13921 : i16} =
+                        add16(acc_13915, i32_res_13920)
+                      in {loopres_13921}
+                    }
+                  "blocked_v3.fut:214:3-51->blocked_v3.fut:168:13-49->blocked_v3.fut:121:7-36->blocked_v3.fut:86:32-51->blocked_v3.fut:60:40-57"
+                  let {-_res_13922 : i16} =
+                    sub16(28i16, c_13913)
+                  return {returns c_13913,
+                          returns -_res_13922}
+                }
+              "blocked_v3.fut:214:3-51->blocked_v3.fut:168:13-49->blocked_v3.fut:121:7-36->blocked_v3.fut:86:22-51"
+              let {manifest_res_13923 : [256i64]i16 @ color_14272 ->
+                                        {offset: 0i64;
+                                         strides: [1i64];
+                                         shape: [256i64]}} =
+                manifest(defunc_0_map_res_13904, (0))
+              "blocked_v3.fut:214:3-51->blocked_v3.fut:168:13-49->blocked_v3.fut:121:7-36->blocked_v3.fut:86:22-51"
+              let {manifest_res_13924 : [256i64]i16 @ color_14268 ->
+                                        {offset: 0i64;
+                                         strides: [1i64];
+                                         shape: [256i64]}} =
+                manifest(defunc_0_map_res_13905, (0))
+              "blocked_v3.fut:214:3-51->blocked_v3.fut:168:13-49->blocked_v3.fut:121:7-36->blocked_v3.fut:87:33-69->blocked_v3.fut:71:15-39"
+              let {manifest_res_13925 : [256i64]i16 @ color_14271 ->
+                                        {offset: 0i64;
+                                         strides: [1i64];
+                                         shape: [256i64]}} =
+                manifest(defunc_0_map_res_12521, (0))
+              "blocked_v3.fut:214:3-51->blocked_v3.fut:168:13-49->blocked_v3.fut:121:7-36->blocked_v3.fut:87:33-69->blocked_v3.fut:71:15-39"
+              let {manifest_res_13926 : [256i64]i16 @ color_14270 ->
+                                        {offset: 0i64;
+                                         strides: [1i64];
+                                         shape: [256i64]}} =
+                manifest(defunc_0_map_res_12521, (0))
+              "blocked_v3.fut:214:3-51->blocked_v3.fut:168:13-49->blocked_v3.fut:121:7-36->blocked_v3.fut:87:33-69->blocked_v3.fut:70:22-35"
+              let {manifest_res_13927 : [1i64]i16 @ color_14267 ->
+                                        {offset: 0i64;
+                                         strides: [1i64];
+                                         shape: [1i64]}} =
+                manifest(manifest_arg_12523, (0))
+              let {scatter_res_13928 : [1i64]i16 @ color_14267 ->
+                                       {offset: 0i64;
+                                        strides: [1i64];
+                                        shape: [1i64]},
+                   scatter_res_13929 : [256i64]i16 @ color_14270 ->
+                                       {offset: 0i64;
+                                        strides: [1i64];
+                                        shape: [256i64]},
+                   scatter_res_13930 : [256i64]i16 @ color_14271 ->
+                                       {offset: 0i64;
+                                        strides: [1i64];
+                                        shape: [256i64]}} =
+                with_acc({([1i64], {manifest_res_13927}),
+                          ([256i64], {manifest_res_13926}),
+                          ([256i64], {manifest_res_13925})},
+                \ {acc_cert_13931 : unit,
+                   acc_cert_13932 : unit,
+                   acc_cert_13933 : unit,
+                   acc_p_13934 : acc(acc_cert_13931, [1i64], {i16}),
+                   acc_p_13935 : acc(acc_cert_13932, [256i64], {i16}),
+                   acc_p_13936 : acc(acc_cert_13933, [256i64], {i16})}
+                  : {acc(acc_cert_13931, [1i64], {i16}),
+                     acc(acc_cert_13932, [256i64], {i16}),
+                     acc(acc_cert_13933, [256i64], {i16})} ->
+                  let {acc_res_13937 : acc(acc_cert_13932, [256i64], {i16}),
+                       acc_res_13938 : acc(acc_cert_13933, [256i64], {i16}),
+                       acc_res_13939 : acc(acc_cert_13931, [1i64], {i16})} =
+                    segscan(inblock; )
+                    (gtid_13940 < 256i64) (~phys_tid_13941)
+                    : {i16, i16, acc(acc_cert_13931, [1i64], {i16}), acc(acc_cert_13932, [256i64], {i16}), acc(acc_cert_13933, [256i64], {i16})} {
+                      let {x_13943 : i16} =
+                        manifest_res_13923[gtid_13940]
+                      let {x_13944 : i16} =
+                        manifest_res_13924[gtid_13940]
+                      return {returns x_13943,
+                              returns x_13944,
+                              returns acc_p_13934,
+                              returns acc_p_13935,
+                              returns acc_p_13936}
+                    }
+                    ({0i16, 0i16},
+                    ,
+                    \ {eta_p_13949 : i16,
+                       eta_p_13950 : i16,
+                       eta_p_13951 : i16,
+                       eta_p_13952 : i16}
+                      : {i16,
+                         i16} ->
+                      "blocked_v3.fut:214:3-51->blocked_v3.fut:168:13-49->blocked_v3.fut:121:7-36->blocked_v3.fut:87:33-69->blocked_v3.fut:69:14-27->blocked_v3.fut:87:45-49->blocked_v3.fut:64:9-13"
+                      let {tmp_13953 : i16} =
+                        add16(eta_p_13949, eta_p_13951)
+                      "blocked_v3.fut:214:3-51->blocked_v3.fut:168:13-49->blocked_v3.fut:121:7-36->blocked_v3.fut:87:33-69->blocked_v3.fut:69:14-27->blocked_v3.fut:87:45-49->blocked_v3.fut:64:18-22"
+                      let {tmp_13954 : i16} =
+                        add16(eta_p_13950, eta_p_13952)
+                      in {tmp_13953, tmp_13954})
+                    \ {x_13955 : i16,
+                       x_13956 : i16,
+                       acc_p_13959 : acc(acc_cert_13931, [1i64], {i16}),
+                       acc_p_13960 : acc(acc_cert_13932, [256i64], {i16}),
+                       acc_p_13961 : acc(acc_cert_13933, [256i64], {i16})}
+                      : {acc(acc_cert_13932, [256i64], {i16}),
+                         acc(acc_cert_13933, [256i64], {i16}),
+                         acc(acc_cert_13931, [1i64], {i16})} ->
+                      "blocked_v3.fut:214:3-51->blocked_v3.fut:168:13-49->blocked_v3.fut:121:7-36->blocked_v3.fut:87:33-69->blocked_v3.fut:68:28-33"
+                      let {lifted_lambda_res_14129 : i64} =
+                        add64(1i64, gtid_13940)
+                      "blocked_v3.fut:214:3-51->blocked_v3.fut:168:13-49->blocked_v3.fut:121:7-36->blocked_v3.fut:87:33-69->blocked_v3.fut:70:49-77"
+                      let {cond_13962 : bool} =
+                        eq_i64(gtid_13940, 255i64)
+                      "blocked_v3.fut:214:3-51->blocked_v3.fut:168:13-49->blocked_v3.fut:121:7-36->blocked_v3.fut:87:33-69->blocked_v3.fut:70:49-77"
+                      let {lifted_lambda_res_13963 : i64} =
+                        if cond_13962
+                        then {0i64} else {-1i64}
+                        : {i64}
+                      "blocked_v3.fut:214:3-51->blocked_v3.fut:168:13-49->blocked_v3.fut:121:7-36->blocked_v3.fut:87:33-69->blocked_v3.fut:70:13-91"
+                      let {scatter_acc_13964 : acc(acc_cert_13931, [1i64], {i16})} =
+                        update_acc(acc_p_13959, {lifted_lambda_res_13963}, {x_13956})
+                      "blocked_v3.fut:214:3-51->blocked_v3.fut:168:13-49->blocked_v3.fut:121:7-36->blocked_v3.fut:87:33-69->blocked_v3.fut:72:9-26"
+                      let {scatter_acc_13965 : acc(acc_cert_13932, [256i64], {i16})} =
+                        update_acc(acc_p_13960, {lifted_lambda_res_14129}, {x_13955})
+                      "blocked_v3.fut:214:3-51->blocked_v3.fut:168:13-49->blocked_v3.fut:121:7-36->blocked_v3.fut:87:33-69->blocked_v3.fut:72:9-26"
+                      let {scatter_acc_13966 : acc(acc_cert_13933, [256i64], {i16})} =
+                        update_acc(acc_p_13961, {lifted_lambda_res_14129}, {x_13956})
+                      in {scatter_acc_13965, scatter_acc_13966, scatter_acc_13964}
+                  in {acc_res_13939, acc_res_13937, acc_res_13938})
+              "blocked_v3.fut:214:3-51->blocked_v3.fut:168:13-49->blocked_v3.fut:121:7-36->blocked_v3.fut:87:33-69->blocked_v3.fut:72:28-32"
+              let {tmp_13967 : i16} =
+                scatter_res_13928[0i64]
+              "blocked_v3.fut:214:3-51->blocked_v3.fut:168:13-49->blocked_v3.fut:121:7-36->blocked_v3.fut:89:19-47"
+              let {manifest_res_13968 : [7168i64]i32 @ mem_param_out_14258 ->
+                                        {offset: 0i64;
+                                         strides: [1i64];
+                                         shape: [7168i64]}} =
+                manifest(manifest_arg_12520, (0))
+              let {defunc_0_map_res_desired_form_db_copy_14243 : [256i64]i16 @ color_14264 ->
+                                                                 {offset: phys_tblock_id_13854;
+                                                                  strides: [n_blocks_12503];
+                                                                  shape: [256i64]}} =
+                copy(manifest_res_12522)
+              let {defunc_0_map_res_desired_form_db_copy_14251 : [256i64]i16 @ color_14263 ->
+                                                                 {offset: phys_tblock_id_13854;
+                                                                  strides: [n_blocks_12503];
+                                                                  shape: [256i64]}} =
+                copy(manifest_res_12522)
+              let {ext_mem_14205 : mem@device,
+                   ext_mem_unused_14241 : mem@device,
+                   ext_mem_14204 : mem@device,
+                   ext_mem_unused_14249 : mem@device,
+                   dst_13969 : [7168i64]i32 @ mem_param_out_14258 ->
+                               {offset: 0i64;
+                                strides: [1i64];
+                                shape: [7168i64]},
+                   dst_13970 : [256i64]i16 @ ext_mem_ext_14301 ->
+                               {offset: phys_tblock_id_13854;
+                                strides: [n_blocks_12503];
+                                shape: [256i64]},
+                   dst_13971 : [256i64]i16 @ ext_mem_ext_14304 ->
+                               {offset: phys_tblock_id_13854;
+                                strides: [n_blocks_12503];
+                                shape: [256i64]},
+                   ext_mem_ext_14301 : mem@device,
+                   ext_mem_ext_14304 : mem@device} =
+                loop {mem_param_14186 : mem@device,
+                      mem_param_out_14242 : mem@device,
+                      mem_param_14189 : mem@device,
+                      mem_param_out_14250 : mem@device,
+                      dst_13973 : *[7168i64]i32 @ mem_param_out_14258 ->
+                                  {offset: 0i64;
+                                   strides: [1i64];
+                                   shape: [7168i64]},
+                      accs_13974 : *[256i64]i16 @ mem_param_ext_14292 ->
+                                   {offset: phys_tblock_id_13854;
+                                    strides: [n_blocks_12503];
+                                    shape: [256i64]},
+                      accs_13975 : *[256i64]i16 @ mem_param_ext_14295 ->
+                                   {offset: phys_tblock_id_13854;
+                                    strides: [n_blocks_12503];
+                                    shape: [256i64]},
+                      mem_param_ext_14292 : mem@device,
+                      mem_param_ext_14295 : mem@device} = {color_14264, color_14266, color_14263, color_14265, manifest_res_13968, defunc_0_map_res_desired_form_db_copy_14243, defunc_0_map_res_desired_form_db_copy_14251, color_14264, color_14263}
+                for k_13972:i64 < 28i64 do {
+                  let {scatter_res_13976 : [7168i64]i32 @ mem_param_out_14258 ->
+                                           {offset: 0i64;
+                                            strides: [1i64];
+                                            shape: [7168i64]},
+                       defunc_0_map_res_13977 : [256i64]i16 @ color_14268 ->
+                                                {offset: 0i64;
+                                                 strides: [1i64];
+                                                 shape: [256i64]},
+                       defunc_0_map_res_13978 : [256i64]i16 @ color_14267 ->
+                                                {offset: 0i64;
+                                                 strides: [1i64];
+                                                 shape: [256i64]}} =
+                    with_acc({([7168i64], {dst_13973})},
+                    \ {acc_cert_13979 : unit,
+                       acc_p_13980 : acc(acc_cert_13979, [7168i64], {i32})}
+                      : {acc(acc_cert_13979, [7168i64], {i32}),
+                         [256i64]i16,
+                         [256i64]i16} ->
+                      "blocked_v3.fut:214:3-51->blocked_v3.fut:168:13-49->blocked_v3.fut:121:7-36->blocked_v3.fut:95:15-107:77"
+                      let {acc_res_13981 : acc(acc_cert_13979, [7168i64], {i32}),
+                           defunc_0_map_res_13982 : [256i64]i16 @ color_14262 ->
+                                                    {offset: 0i64;
+                                                     strides: [1i64];
+                                                     shape: [256i64]},
+                           defunc_0_map_res_13983 : [256i64]i16 @ color_14262 ->
+                                                    {offset: 0i64;
+                                                     strides: [1i64];
+                                                     shape: [256i64]}} =
+                        segmap(inblock; )
+                        (gtid_13984 < 256i64) (~phys_tid_13985) : {acc(acc_cert_13979, [7168i64], {i32}), i16, i16} {
+                          let {eta_p_13987 : i16} =
+                            accs_13974[gtid_13984]
+                          let {eta_p_13988 : i16} =
+                            accs_13975[gtid_13984]
+                          "blocked_v3.fut:214:3-51->blocked_v3.fut:168:13-49->blocked_v3.fut:121:7-36->blocked_v3.fut:94:15-49->blocked_v3.fut:12:28-36"
+                          let {lifted_lambda_res_13992 : i64} =
+                            mul64(28i64, gtid_13984)
+                          "blocked_v3.fut:214:3-51->blocked_v3.fut:168:13-49->blocked_v3.fut:121:7-36->blocked_v3.fut:94:15-49->blocked_v3.fut:12:13-23"
+                          let {lifted_lambda_res_13993 : i64} =
+                            add64(k_13972, lifted_lambda_res_13992)
+                          "blocked_v3.fut:214:3-51->blocked_v3.fut:168:13-49->blocked_v3.fut:121:7-36->blocked_v3.fut:96:48-53"
+                          let {get_arg0_13994 : i32} =
+                            as_13902[lifted_lambda_res_13993]
+                          "blocked_v3.fut:214:3-51->blocked_v3.fut:168:13-49->blocked_v3.fut:121:7-36->blocked_v3.fut:96:44-53->blocked_v3.fut:214:40-51"
+                          let {unsign_arg0_13995 : i32} =
+                            ashr32(get_arg0_13994, get_bit_arg0_13903)
+                          "blocked_v3.fut:214:3-51->blocked_v3.fut:168:13-49->blocked_v3.fut:121:7-36->blocked_v3.fut:96:44-53->blocked_v3.fut:214:40-51"
+                          let {unsign_arg0_13996 : i32} =
+                            and32(1i32, unsign_arg0_13995)
+                          "blocked_v3.fut:214:3-51->blocked_v3.fut:168:13-49->blocked_v3.fut:121:7-36->blocked_v3.fut:96:44-53->blocked_v3.fut:85:19-26"
+                          let {i32_res_13997 : i16} =
+                            sext i32 unsign_arg0_13996 to i16
+                          "blocked_v3.fut:214:3-51->blocked_v3.fut:168:13-49->blocked_v3.fut:121:7-36->blocked_v3.fut:98:37-100:53"
+                          let {cond_13998 : bool} =
+                            eq_i16(i32_res_13997, 0i16)
+                          "blocked_v3.fut:214:3-51->blocked_v3.fut:168:13-49->blocked_v3.fut:121:7-36->blocked_v3.fut:98:37-100:53"
+                          let {i16_arg0_13999 : i16} =
+                            if cond_13998
+                            then {
+                              let {eta_p_13990 : i16} =
+                                scatter_res_13930[gtid_13984]
+                              "blocked_v3.fut:214:3-51->blocked_v3.fut:168:13-49->blocked_v3.fut:121:7-36->blocked_v3.fut:99:45-49"
+                              let {i16_arg0_t_res_14000 : i16} =
+                                add16(eta_p_13988, eta_p_13990)
+                              in {i16_arg0_t_res_14000}
+                            } else {
+                              let {eta_p_13989 : i16} =
+                                scatter_res_13929[gtid_13984]
+                              "blocked_v3.fut:214:3-51->blocked_v3.fut:168:13-49->blocked_v3.fut:121:7-36->blocked_v3.fut:100:44-48"
+                              let {+_lhs_14001 : i16} =
+                                add16(tmp_13967, eta_p_13989)
+                              "blocked_v3.fut:214:3-51->blocked_v3.fut:168:13-49->blocked_v3.fut:121:7-36->blocked_v3.fut:100:49-53"
+                              let {i16_arg0_f_res_14002 : i16} =
+                                add16(eta_p_13987, +_lhs_14001)
+                              in {i16_arg0_f_res_14002}
+                            }
+                            : {i16}
+                          "blocked_v3.fut:214:3-51->blocked_v3.fut:168:13-49->blocked_v3.fut:121:7-36->blocked_v3.fut:98:28-100:53"
+                          let {i16_res_14003 : i64} =
+                            sext i16 i16_arg0_13999 to i64
+                          "blocked_v3.fut:214:3-51->blocked_v3.fut:168:13-49->blocked_v3.fut:121:7-36->blocked_v3.fut:101:40-43"
+                          let {acc_14004 : i16} =
+                            add16(eta_p_13987, i32_res_13997)
+                          "blocked_v3.fut:214:3-51->blocked_v3.fut:168:13-49->blocked_v3.fut:121:7-36->blocked_v3.fut:101:56-59"
+                          let {+_rhs_14005 : i16} =
+                            xor16(1i16, i32_res_13997)
+                          "blocked_v3.fut:214:3-51->blocked_v3.fut:168:13-49->blocked_v3.fut:121:7-36->blocked_v3.fut:101:48-59"
+                          let {acc_14006 : i16} =
+                            add16(eta_p_13988, +_rhs_14005)
+                          "blocked_v3.fut:214:3-51->blocked_v3.fut:168:13-49->blocked_v3.fut:121:7-36->blocked_v3.fut:107:15-77"
+                          let {scatter_acc_14007 : acc(acc_cert_13979, [7168i64], {i32})} =
+                            update_acc(acc_p_13980, {i16_res_14003}, {get_arg0_13994})
+                          return {returns scatter_acc_14007,
+                                  returns acc_14004,
+                                  returns acc_14006}
+                        }
+                      in {acc_res_13981, defunc_0_map_res_13982, defunc_0_map_res_13983})
+                  let {defunc_0_map_res_desired_form_14195 : [256i64]i16 @ mem_param_out_14242 ->
+                                                             {offset: phys_tblock_id_13854;
+                                                              strides: [n_blocks_12503];
+                                                              shape: [256i64]}} =
+                    manifest(defunc_0_map_res_13977, (0))
+                  let {defunc_0_map_res_desired_form_14197 : [256i64]i16 @ mem_param_out_14250 ->
+                                                             {offset: phys_tblock_id_13854;
+                                                              strides: [n_blocks_12503];
+                                                              shape: [256i64]}} =
+                    manifest(defunc_0_map_res_13978, (0))
+                  in {mem_param_out_14242, mem_param_14186, mem_param_out_14250, mem_param_14189, scatter_res_13976, defunc_0_map_res_desired_form_14195, defunc_0_map_res_desired_form_14197, mem_param_out_14242, mem_param_out_14250}
+                }
+              in {mem_param_out_14258, mem_param_14172, dst_13969, mem_param_out_14258}
+            }
+          return {returns sorted_13900,
+                  returns manifest_res_13899,
+                  returns defunc_0_count_res_13859}
+        }
+      "blocked_v3.fut:214:3-51->blocked_v3.fut:168:13-49->blocked_v3.fut:123:40-79"
+      let {result_proper_shape_12720 : [d<{(*) n_blocks ((*) num_elems block_size)}>_12504]i32 @ mem_14212 ->
+                                       {offset: 0i64;
+                                        strides: [1i64];
+                                        shape: [d<{(*) n_blocks ((*) num_elems block_size)}>_12504]}} =
+        reshape(defunc_0_f_res_pretr_13850,
+                (0::2=>[d<{(*) n_blocks ((*) num_elems block_size)}>_12504];
+                 [d<{(*) n_blocks ((*) num_elems block_size)}>_12504]))
+      let {defunc_0_map_res_13773 : [d<{(*) num_bins n}>_12512]i64 @ mem_14221 ->
+                                    {offset: 0i64;
+                                     strides: [1i64];
+                                     shape: [d<{(*) num_bins n}>_12512]}} =
+        segscan(thread; ; grid=num_tblocks_14012; blocksize=segscan_tblock_size_14010)
+        (gtid_14014 < d<{(*) num_bins n}>_12512) (~phys_tid_14015)
+        : {i64, i64} {
+          let {new_index_14117 : i64} =
+            squot64(gtid_14014, n_blocks_12503)
+          let {binop_y_14119 : i64} =
+            mul_nw64(n_blocks_12503, new_index_14117)
+          let {new_index_14120 : i64} =
+            sub_nw64(gtid_14014, binop_y_14119)
+          let {eta_p_12990 : i16} =
+            defunc_0_f_res_pretr_13852[new_index_14120, new_index_14117]
+          "blocked_v3.fut:214:3-51->blocked_v3.fut:168:13-49->blocked_v3.fut:131:14-21"
+          let {i16_res_12991 : i64} =
+            sext i16 eta_p_12990 to i64
+          return {returns i16_res_12991,
+                  returns i16_res_12991}
+        }
+        ({0i64},
+        ,
+        \ {eta_p_12729 : i64,
+           eta_p_12730 : i64}
+          : {i64} ->
+          "blocked_v3.fut:214:3-51->blocked_v3.fut:168:13-49->blocked_v3.fut:132:10-18->blocked_v3.fut:41:20-23"
+          let {defunc_0_op_res_12731 : i64} =
+            add64(eta_p_12729, eta_p_12730)
+          in {defunc_0_op_res_12731})
+        \ {x_12979 : i64,
+           x_12726 : i64}
+          : {i64} ->
+          "blocked_v3.fut:214:3-51->blocked_v3.fut:168:13-49->blocked_v3.fut:132:10-18->blocked_v3.fut:41:10-13"
+          let {defunc_0_f_res_12984 : i64} =
+            sub64(x_12979, x_12726)
+          in {defunc_0_f_res_12984}
+      "blocked_v3.fut:214:3-51->blocked_v3.fut:168:13-49->blocked_v3.fut:144:17-28"
+      let {mem_14223 : mem@device} =
+        alloc(bytes_14146, @device)
+      "blocked_v3.fut:214:3-51->blocked_v3.fut:168:13-49->blocked_v3.fut:144:17-28"
+      let {smaller_replicate_12775 : [d<{(*) n_blocks ((*) num_elems block_size)}>_12504]i32 @ mem_14223 ->
+                                     {offset: 0i64;
+                                      strides: [1i64];
+                                      shape: [d<{(*) n_blocks ((*) num_elems block_size)}>_12504]}} =
+        copy(result_proper_shape_12720)
+      "blocked_v3.fut:214:3-51->blocked_v3.fut:168:13-49->blocked_v3.fut:144:8-39"
+      let {scatter_res_12776 : [d<{(*) n_blocks ((*) num_elems block_size)}>_12504]i32 @ mem_14223 ->
+                               {offset: 0i64;
+                                strides: [1i64];
+                                shape: [d<{(*) n_blocks ((*) num_elems block_size)}>_12504]}} =
+        with_acc({([d<{(*) n_blocks ((*) num_elems block_size)}>_12504], {smaller_replicate_12775})},
+        \ {acc_cert_12805 : unit,
+           acc_p_12806 : acc(acc_cert_12805, [d<{(*) n_blocks ((*) num_elems block_size)}>_12504], {i32})}
+          : {acc(acc_cert_12805, [d<{(*) n_blocks ((*) num_elems block_size)}>_12504], {i32})} ->
+          "blocked_v3.fut:214:3-51->blocked_v3.fut:168:13-49->blocked_v3.fut:136:7-144:39"
+          let {acc_res_14069 : acc(acc_cert_12805, [d<{(*) n_blocks ((*) num_elems block_size)}>_12504], {i32})} =
+            segmap(thread; virtualise; grid=num_tblocks_14067; blocksize=segmap_tblock_size_14066)
+            (gtid_14070 < d<{(*) n_blocks ((*) num_elems block_size)}>_12504) (~phys_tid_14071) : {acc(acc_cert_12805, [d<{(*) n_blocks ((*) num_elems block_size)}>_12504], {i32})} {
+              let {new_index_14111 : i64} =
+                squot64(gtid_14070, 7168i64)
+              let {binop_y_14113 : i64} =
+                mul_nw64(7168i64, new_index_14111)
+              let {new_index_14114 : i64} =
+                sub_nw64(gtid_14070, binop_y_14113)
+              let {v_14074 : i32} =
+                defunc_0_f_res_pretr_13850[new_index_14111, new_index_14114]
+              "blocked_v3.fut:214:3-51->blocked_v3.fut:168:13-49->blocked_v3.fut:138:60-88->blocked_v3.fut:35:9-37:47"
+              let {<|_rhs_14083 : i32} =
+                loop {acc_14085 : i32} = {0i32}
+                for i_14084:i32 < 8i32 do {
+                  "blocked_v3.fut:214:3-51->blocked_v3.fut:168:13-49->blocked_v3.fut:138:60-88->blocked_v3.fut:37:35-38"
+                  let {get_bit_arg0_14086 : i32} =
+                    add32(sort_step_arg0_12535, i_14084)
+                  "blocked_v3.fut:214:3-51->blocked_v3.fut:168:13-49->blocked_v3.fut:138:60-88->blocked_v3.fut:37:18-41->blocked_v3.fut:214:40-51"
+                  let {unsign_arg0_14087 : i32} =
+                    ashr32(v_14074, get_bit_arg0_14086)
+                  "blocked_v3.fut:214:3-51->blocked_v3.fut:168:13-49->blocked_v3.fut:138:60-88->blocked_v3.fut:37:18-41->blocked_v3.fut:214:40-51"
+                  let {unsign_arg0_14088 : i32} =
+                    and32(1i32, unsign_arg0_14087)
+                  "blocked_v3.fut:214:3-51->blocked_v3.fut:168:13-49->blocked_v3.fut:138:60-88->blocked_v3.fut:37:42-46"
+                  let {+_rhs_14089 : i32} =
+                    shl32(unsign_arg0_14088, i_14084)
+                  "blocked_v3.fut:214:3-51->blocked_v3.fut:168:13-49->blocked_v3.fut:138:60-88->blocked_v3.fut:37:15-46"
+                  let {loopres_14090 : i32} =
+                    add32(acc_14085, +_rhs_14089)
+                  in {loopres_14090}
+                }
+              "blocked_v3.fut:214:3-51->blocked_v3.fut:168:13-49->blocked_v3.fut:138:60-88->blocked_v3.fut:35:5-37:47->blocked_v3.fut:34:5-12"
+              let {i32_res_14091 : i64} =
+                sext i32 <|_rhs_14083 to i64
+              "blocked_v3.fut:214:3-51->blocked_v3.fut:168:13-49->blocked_v3.fut:139:68-93"
+              let {block_idx_14092 : i64} =
+                sdiv64(gtid_14070, 7168i64)
+              "blocked_v3.fut:214:3-51->blocked_v3.fut:168:13-49->blocked_v3.fut:140:67-89"
+              let {x_14093 : bool} =
+                sle64(0i64, block_idx_14092)
+              "blocked_v3.fut:214:3-51->blocked_v3.fut:168:13-49->blocked_v3.fut:140:67-89"
+              let {y_14094 : bool} =
+                slt64(block_idx_14092, n_blocks_12503)
+              "blocked_v3.fut:214:3-51->blocked_v3.fut:168:13-49->blocked_v3.fut:140:67-89"
+              let {bounds_check_14095 : bool} =
+                logand(x_14093, y_14094)
+              "blocked_v3.fut:214:3-51->blocked_v3.fut:168:13-49->blocked_v3.fut:140:67-89"
+              let {index_certs_14096 : unit} =
+                assert(bounds_check_14095, {"Index [", block_idx_14092 : i64, "] out of bounds for array of shape [", n_blocks_12503 : i64, "]."})
+              "blocked_v3.fut:214:3-51->blocked_v3.fut:168:13-49->blocked_v3.fut:140:67-94"
+              let {x_14097 : bool} =
+                sle64(0i64, i32_res_14091)
+              "blocked_v3.fut:214:3-51->blocked_v3.fut:168:13-49->blocked_v3.fut:140:67-94"
+              let {y_14098 : bool} =
+                slt64(i32_res_14091, 256i64)
+              "blocked_v3.fut:214:3-51->blocked_v3.fut:168:13-49->blocked_v3.fut:140:67-94"
+              let {bounds_check_14099 : bool} =
+                logand(x_14097, y_14098)
+              "blocked_v3.fut:214:3-51->blocked_v3.fut:168:13-49->blocked_v3.fut:140:67-94"
+              let {index_certs_14100 : unit} =
+                assert(bounds_check_14099, {"Index [", i32_res_14091 : i64, "] out of bounds for array of shape [", 256i64 : i64, "]."})
+              "blocked_v3.fut:214:3-51->blocked_v3.fut:168:13-49"
+              let {binop_x_14101 : i64} =
+                #{index_certs_14096, index_certs_14100}
+                mul_nw64(n_blocks_12503, i32_res_14091)
+              "blocked_v3.fut:214:3-51->blocked_v3.fut:168:13-49"
+              let {index_primexp_14102 : i64} =
+                #{index_certs_14096, index_certs_14100}
+                add_nw64(block_idx_14092, binop_x_14101)
+              "blocked_v3.fut:214:3-51->blocked_v3.fut:168:13-49"
+              let {new_offset_14103 : i64} =
+                #{index_certs_14096, index_certs_14100}
+                defunc_0_map_res_13773[index_primexp_14102]
+              "blocked_v3.fut:214:3-51->blocked_v3.fut:168:13-49->blocked_v3.fut:136:7-143:83"
+              let {i16_arg0_14104 : i16} =
+                #{index_certs_14096, index_certs_14100}
+                defunc_0_f_res_pretr_13851[block_idx_14092, i32_res_14091]
+              "blocked_v3.fut:214:3-51->blocked_v3.fut:168:13-49->blocked_v3.fut:141:73-108"
+              let {i16_res_14105 : i64} =
+                sext i16 i16_arg0_14104 to i64
+              "blocked_v3.fut:214:3-51->blocked_v3.fut:168:13-49->blocked_v3.fut:142:92-103"
+              let {+_lhs_14106 : i64} =
+                mul64(7168i64, block_idx_14092)
+              "blocked_v3.fut:214:3-51->blocked_v3.fut:168:13-49->blocked_v3.fut:142:104-122"
+              let {old_offset_14107 : i64} =
+                add64(i16_res_14105, +_lhs_14106)
+              "blocked_v3.fut:214:3-51->blocked_v3.fut:168:13-49->blocked_v3.fut:143:56-68"
+              let {+_lhs_14108 : i64} =
+                sub64(gtid_14070, old_offset_14107)
+              "blocked_v3.fut:214:3-51->blocked_v3.fut:168:13-49->blocked_v3.fut:143:70-82"
+              let {defunc_0_f_res_14109 : i64} =
+                add64(new_offset_14103, +_lhs_14108)
+              "blocked_v3.fut:214:3-51->blocked_v3.fut:168:13-49->blocked_v3.fut:144:8-39"
+              let {scatter_acc_14110 : acc(acc_cert_12805, [d<{(*) n_blocks ((*) num_elems block_size)}>_12504], {i32})} =
+                update_acc(acc_p_12806, {defunc_0_f_res_14109}, {v_14074})
+              return {returns scatter_acc_14110}
+            }
+          in {acc_res_14069})
+      in {mem_14223, scatter_res_12776}
+    }
+  "blocked_v3.fut:214:3-51->blocked_v3.fut:166:8-168:49->blocked_v3.fut:165:8-13"
+  let {sized_res_12787 : [n₀_10770]i32 @ ext_mem_14227 ->
+                         {offset: 0i64;
+                          strides: [1i64];
+                          shape: [n₀_10770]}} =
+    #{empty_or_match_cert_12786}
+    reshape(<|_rhs_12532,
+            (0::1=>[n₀_10770];
+             [n₀_10770]))
+  in {ext_mem_14227, sized_res_12787}
+}
